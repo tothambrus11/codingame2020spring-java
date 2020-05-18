@@ -9,6 +9,8 @@ class Player {
     static Game game;
 
     public static void main(String[] args) {
+        Game.startTime = Game.millis();
+
         scanner = new Scanner(System.in);
         map = new Map(scanner);
         game = new Game(map, scanner);
@@ -45,7 +47,6 @@ class Game {
     }
 
     void beforeTick() {
-        startTime = millis();
         this.myPlayer.score = scanner.nextInt();
         this.otherPlayer.score = scanner.nextInt();
 
@@ -106,16 +107,16 @@ class Game {
         ArrayList<String> commands = new ArrayList<>();
         for (int i = 0; i < this.myPlayer.pacmen.size(); i++) {
             Pacman myPacman = this.myPlayer.pacmen.get(i);
+            System.err.println(myPacman.pos + " (" + myPacman.id + ")");
 
             if (myPacman.abilityCooldown == 0) {
                 commands.add(speedUpPacman(myPacman.id));
                 continue;
             }
-            System.err.println(myPlayer.pacmen.get(0).pos.toString());
 
             ArrayList<Position> possibleMoves = map.reachablePositionsUniversal(myPacman, this.myPlayer, this.otherPlayer);
             possibleMoves.forEach(move -> {
-                System.err.println(" - " + move);
+                //System.err.println(" - " + move);
             });
             for (int i1 = 0; i1 < possibleMoves.size(); i1++) {
                 Position possibleMove = possibleMoves.get(i1);
@@ -135,21 +136,7 @@ class Game {
                         }
                     }
                 }
-                if (possibleMove != null) {
-                    for (Pacman myPac : myPlayer.pacmen) {
-                        if (myPac.isSlow()) {
-                            if (map.distance(myPac.pos, possibleMove) <= 1 && Math.random() < 0.2) {
-                                possibleMoves.remove(possibleMove);
-                                break;
-                            }
-                        } else {
-                            if (map.distance(myPac.pos, possibleMove) <= 2 && Math.random() < 0.2) {
-                                possibleMoves.remove(possibleMove);
-                                break;
-                            }
-                        }
-                    }
-                }
+
 
             }
 
@@ -157,10 +144,10 @@ class Game {
             possibleMoves.forEach(position -> scoredMoves.add(new ScoredMove(0, position)));
 
             // Látható pelletek pontozása
+            int bd = 10000000;
             for (Pellet pellet : this.pellets) {
                 int bestDistance = 10000000;
-                int bestMoveIndex = 0;
-                Position bestMove;
+                int bestMoveIndex = -1;
 
                 Position nextPos;
                 for (int j = 0; j < possibleMoves.size(); j++) {
@@ -168,49 +155,102 @@ class Game {
                     if (map.distance(nextPos, pellet.pos) < bestDistance) {
                         bestDistance = map.distance(nextPos, pellet.pos);
                         bestMoveIndex = j;
-                        bestMove = nextPos;
                     }
                 }
-
-                scoredMoves.get(bestMoveIndex).score += 50 / (bestDistance != 0 ? (float) bestDistance : 1);
+                if (bestMoveIndex != -1) {
+                    scoredMoves.get(bestMoveIndex).score += (50 + (pellet.value == 10 ? 50 : 0)) / (bestDistance != 0 ? (float) bestDistance : 0.7);
+                    if (bestDistance < bd) {
+                        bd = bestDistance;
+                    }
+                }
             }
             //System.err.println("Pacman(" + myPacman.id + ") at " + myPacman.pos.toString());
-            System.err.println("BEFORE INTERESTING");
+            System.err.println("  Possible moves after pellets:");
 
-            scoredMoves.forEach(move->{
+            scoredMoves.forEach(move -> {
                 System.err.println(" - " + move.move + " \t--- " + move.score);
             });
 
-            this.map.getUnkownPositions().forEach(ukPos -> {
-                int bestDistance = 10000000;
-                int bestMoveIndex = 0;
-                Position bestMove;
+            // Ha már messze látunk csak pelletet
+            if (bd > 10) {
+                this.map.getUnkownPositions().forEach(ukPos -> {
+                    int bestDistance = 10000000;
+                    int bestMoveIndex = -1;
+                    Position bestMove;
 
-                Position nextPos;
-                for (int j = 0; j < possibleMoves.size(); j++) {
-                    nextPos = possibleMoves.get(j);
-                    if (this.map.distance(nextPos, ukPos) < bestDistance) {
-                        bestDistance = this.map.distance(nextPos, ukPos);
-                        bestMoveIndex = j;
-                        bestMove = nextPos;
+                    Position nextPos;
+                    for (int j = 0; j < possibleMoves.size(); j++) {
+                        nextPos = possibleMoves.get(j);
+                        if (this.map.distance(nextPos, ukPos) < bestDistance) {
+                            bestDistance = this.map.distance(nextPos, ukPos);
+                            bestMoveIndex = j;
+                            bestMove = nextPos;
+                        }
+                    }
+
+                    if (bestMoveIndex != -1) {
+                        scoredMoves.get(bestMoveIndex).score += (60d/map.unknownPoses) / (bestDistance != 0 ? (float) bestDistance : 1);
+                    }
+                });
+            }
+
+            for (ScoredMove move : scoredMoves) {
+
+                for (Pacman myPac : myPlayer.pacmen) {
+                    if(this.map.distance(myPac.pos, move.move) <= (Math.random() > 0.2 ? 0 : 1)){
+                        move.score = -500;
+                    }
+                    if(map.distance(myPac.pos, myPacman.pos) == 2){
+                        if(map.distance(move.move, myPac.pos) <=1){
+                            move.score = 0;
+                        }
+                    }
+                    if (myPacman.isSlow()) {
+                        if (map.distance(myPac.pos, move.move) <= 6) {
+                            move.score -= 12d / Math.max(0.7, map.distance(myPac.pos, move.move));
+                        }
+                    } else {
+                        if (map.distance(myPac.pos, move.move) <= 10) {
+                            move.score -= 20d / Math.max(0.7, map.distance(myPac.pos, move.move));
+                        }
                     }
                 }
-
-                scoredMoves.get(bestMoveIndex).score += 10 / (bestDistance != 0 ? (float) bestDistance : 1);
-            });
+                for (Pacman opponentPac : otherPlayer.pacmen){
+                    if(map.distance(opponentPac.pos, myPacman.pos) == 2){
+                        if(map.distance(move.move, opponentPac.pos) <=1){
+                            move.score = Math.min(0, move.score);
+                        }
+                    }
+                    if (opponentPac.isSlow()) {
+                        if (map.distance(opponentPac.pos, move.move) <= 6) {
+                            move.score -= 20d / Math.max(0.5, map.distance(opponentPac.pos, move.move));
+                        }
+                    } else {
+                        if (map.distance(opponentPac.pos, move.move) <= 10) {
+                            move.score -= 50d / Math.max(0.5, map.distance(opponentPac.pos, move.move));
+                        }
+                    }
+                }
+            }
 
 
             scoredMoves.sort((ScoredMove a, ScoredMove b) -> (int) ((b.score - a.score) * 1000));
+            System.err.println("  Possible moves after everything:");
 
-
-            System.err.println("ORDERED: ");
-            scoredMoves.forEach(move->{
+            scoredMoves.forEach(move -> {
                 System.err.println(" - " + move.move + " \t--- " + move.score);
+            });
+
+            //System.err.println("ORDERED: ");
+            scoredMoves.forEach(move -> {
+                //    System.err.println(" - " + move.move + " \t--- " + move.score);
             });
             //System.err.println(scoredMoves);
 
             if (possibleMoves.size() > 0) {
                 commands.add(this.movePac(myPacman.id, scoredMoves.get(0).move));
+            } else {
+                System.err.println("POSSIBLEMOVES: 0");
             }
         }
         this.sendCommands(commands);
@@ -267,6 +307,7 @@ class Map {
     private int[][][][] d;
 
     Map(Scanner scanner) {
+        System.err.println("DEBUG 1 T=" + ((Game.millis() - Game.startTime) / 1000));
         int width = scanner.nextInt();
         int height = scanner.nextInt();
 
@@ -290,10 +331,13 @@ class Map {
                 }
             }
         }
+        Game.startTime = Game.millis();
+        System.err.println("DEBUG 2 T=" + ((Game.millis() - Game.startTime) / 1000));
 
         this.floydWarshall();
 
         this.definetelyNoPellets = new boolean[height][width];
+        this.unknownPoses = width*height;
     }
 
 
@@ -327,7 +371,36 @@ class Map {
     }
 
     Position teleportPosition(Position pos) {
-        return new Position((pos.x + this.gameSize.x) % this.gameSize.x, (pos.y + this.gameSize.y) % this.gameSize.y);
+        Position res = pos.copy();
+        if (res.x < 0) {
+            res.x += gameSize.x;
+        } else if (res.x >= gameSize.x) {
+            res.x -= gameSize.x;
+        }
+        if (res.y < 0) {
+            res.y += gameSize.y;
+        } else if (res.y >= gameSize.y) {
+            res.y -= gameSize.y;
+        }
+        return res;
+    }
+
+    int teleportX(int x) {
+        if (x < 0) {
+            return x + gameSize.x;
+        } else if (x >= gameSize.x) {
+            return x - gameSize.x;
+        }
+        return x;
+    }
+
+    int teleportY(int y) {
+        if (y < 0) {
+            return y + gameSize.x;
+        } else if (y >= gameSize.x) {
+            return y - gameSize.x;
+        }
+        return y;
     }
 
     ArrayList<Position> reachablePositions(Position position) {
@@ -385,8 +458,11 @@ class Map {
         }
     }
 
+    int unknownPoses;
+
     void markNoPelletPos(Position noPelletPos) {
         this.definetelyNoPellets[noPelletPos.y][noPelletPos.x] = true;
+        unknownPoses--;
     }
 
     /**
@@ -443,26 +519,27 @@ class Map {
         System.err.println("after init array " + (Game.millis() - Game.startTime));
 
         int x1, x2, y1, y2;
-        Position tryPos;
         for (x1 = 0; x1 < w; x1++) {
             for (y1 = 0; y1 < h; y1++) {
                 for (x2 = 0; x2 < w; x2++) {
                     for (y2 = 0; y2 < h; y2++) {
-                        if (this.isFloor(x1, y1) && this.isFloor(x2, y2)) {
-                            if (x1 == x2 && y1 == y2) {
-                                this.d[x1][y1][x2][y2] = 0;
-                            } else {
-                                for (int i = 0; ; i++) {
-                                    if (i == 4) {
-                                        this.d[x1][y1][x2][y2] = 10000000;
-                                        break;
-                                    }
-                                    tryPos = teleportPosition(new Position(additions[i].x + x1, additions[i].y + y1));
-                                    if (tryPos.x == x2 && tryPos.y == y2) {
-                                        this.d[x1][y1][x2][y2] = 1;
-                                        break;
-                                    }
+                        if (this.fields[y1][x1] == FieldType.FLOOR && this.fields[y2][x2] == FieldType.FLOOR) {
+                            if (x1 == x2) {
+                                if (y1 == y2) {
+                                    this.d[x1][y1][x2][y2] = 0;
+                                } else if (y1 == teleportY(y2 + 1) || y1 == teleportY(y2 - 1)) {
+                                    this.d[x1][y1][x2][y2] = 1;
+                                } else {
+                                    this.d[x1][y1][x2][y2] = 10000000;
                                 }
+                            } else if (y1 == y2) {
+                                if (x1 == teleportX(x2 + 1) || x1 == teleportX(x2 - 1)) {
+                                    this.d[x1][y1][x2][y2] = 1;
+                                } else {
+                                    this.d[x1][y1][x2][y2] = 10000000;
+                                }
+                            } else {
+                                this.d[x1][y1][x2][y2] = 10000000;
                             }
                         } else {
                             this.d[x1][y1][x2][y2] = 10000000;
@@ -477,19 +554,18 @@ class Map {
         int k_x, k_y, i_x, i_y, j_x, j_y;
 
         for (k_x = 0; k_x < w; k_x++) {
-            System.err.println("p = " + Math.floor((float) k_x / (float) w * 100) + "%; T = " + (Game.millis() - Game.startTime));
-
+            if (k_x % 5 == 0) {
+                System.err.println("p = " + Math.floor((float) (k_x + 1) / (float) w * 100) + "%; T = " + (Game.millis() - Game.startTime));
+            }
             for (k_y = 0; k_y < h; k_y++) {
                 for (i_x = 0; i_x < w; i_x++) {
                     for (i_y = 0; i_y < h; i_y++) {
                         for (j_x = 0; j_x < w; j_x++) {
                             for (j_y = 0; j_y < h; j_y++) {
-                                if (isFloor(i_x, i_y, false) && isFloor(j_x, j_y, false) && isFloor(k_x, k_y, false)) {
-                                    this.d[i_x][i_y][j_x][j_y] = Math.min(
-                                            this.d[i_x][i_y][j_x][j_y],
-                                            this.d[i_x][i_y][k_x][k_y] + this.d[k_x][k_y][j_x][j_y]
-                                    );
-                                }
+                                this.d[i_x][i_y][j_x][j_y] = Math.min(
+                                        this.d[i_x][i_y][j_x][j_y],
+                                        this.d[i_x][i_y][k_x][k_y] + this.d[k_x][k_y][j_x][j_y]
+                                );
                             }
                         }
                     }
@@ -497,7 +573,7 @@ class Map {
             }
         }
 
-        System.err.println("végigmenés kész");
+        System.err.println("végigmenés kész T=" + ((Game.millis() - Game.startTime) / 1000));
     }
 
 

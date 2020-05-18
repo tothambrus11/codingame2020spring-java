@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="341223ea-d5e0-48a3-acc4-6218b1a41c5e" name="Default Changelist" comment="" />
+    <list default="true" id="341223ea-d5e0-48a3-acc4-6218b1a41c5e" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/User.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/User.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Player.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Player.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -42,6 +46,7 @@
     <property name="Repository.Attach.JavaDocs" value="false" />
     <property name="Repository.Attach.Sources" value="false" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../codingamePlugin/codingame-java-packager/target/codingame-java-packager-1.0-SNAPSHOT.jar!/" />
@@ -85,7 +90,9 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1589651033224</updated>
-      <workItem from="1589651038319" duration="16035000" />
+      <workItem from="1589651038319" duration="18003000" />
+      <workItem from="1589741469776" duration="5379000" />
+      <workItem from="1589748301847" duration="16874000" />
     </task>
     <servers />
   </component>
@@ -133,10 +140,10 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="163" y="0" key="SettingsEditor/0.0.1366.728/1366.-305.1920.1040@0.0.1366.728" timestamp="1589652438383" />
-    <state x="379" y="187" key="com.intellij.ide.util.TipDialog" timestamp="1589651039252">
+    <state x="379" y="187" key="com.intellij.ide.util.TipDialog" timestamp="1589748296960">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="379" y="187" key="com.intellij.ide.util.TipDialog/0.0.1366.728/1366.-305.1920.1040@0.0.1366.728" timestamp="1589651039252" />
+    <state x="379" y="187" key="com.intellij.ide.util.TipDialog/0.0.1366.728/1366.-305.1920.1040@0.0.1366.728" timestamp="1589748296960" />
     <state x="387" y="257" key="com.intellij.jarRepository.RepositoryAttachDialog-DOWNLOAD" timestamp="1589652414816">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
@@ -145,10 +152,10 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="65" y="0" key="new project wizard/0.0.1366.728/1366.-305.1920.1040@0.0.1366.728" timestamp="1589652586029" />
-    <state x="339" y="162" key="run.anything.popup" timestamp="1589662479553">
+    <state x="339" y="162" key="run.anything.popup" timestamp="1589763279298">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="339" y="162" key="run.anything.popup/0.0.1366.728/1366.-305.1920.1040@0.0.1366.728" timestamp="1589662479553" />
+    <state x="339" y="162" key="run.anything.popup/0.0.1366.728/1366.-305.1920.1040@0.0.1366.728" timestamp="1589763279298" />
     <state x="346" y="49" width="672" height="678" key="search.everywhere.popup" timestamp="1589655023121">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
